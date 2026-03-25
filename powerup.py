@@ -71,6 +71,9 @@ def check_frame(data):
     global blk_lev, opp, otp, vol_lev
     global index, state, vo_set, io_set, ovp_set, ocp_set
 
+    if isinstance(data, list):
+        data = bytes(data)
+
     if data[0] == DR_D2H:
         op = data[1]
         data_len = data[3]
@@ -148,9 +151,21 @@ def load_config(file_name="config.txt"):
             current = float("".join(filter(lambda x: x.isdigit() or x == ".", line)))
     return [int(voltage * 1000), int(current * 1000)]
 
+device_path = None
+for device_info in hid.enumerate(VID, PID):
+    device_path = device_info["path"]
+    break
 
-with hid.Device(VID, PID) as dp100:
-    print(f"Device manufacturer: {dp100.manufacturer}, Serial number: {dp100.serial}")
+if device_path is None:
+    raise RuntimeError(f"Device {VID:04x}:{PID:04x} not found")
+
+dp100 = hid.device()
+dp100.open_path(device_path)
+
+try:
+    print(f"Manufacturer: {dp100.get_manufacturer_string()}")
+    print(f"Product: {dp100.get_product_string()}")
+    print(f"Serial: {dp100.get_serial_number_string()}")
 
     dp100.write(gen_frame(OP_DEVICEINFO))
     time.sleep(0.05)
@@ -178,3 +193,6 @@ with hid.Device(VID, PID) as dp100:
     print(f"{new_voltage/1000}V output enable.")
     time.sleep(0.05)
     check_frame(dp100.read(64))
+
+finally:
+    dp100.close()
