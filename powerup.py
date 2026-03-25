@@ -151,16 +151,8 @@ def load_config(file_name="config.txt"):
             current = float("".join(filter(lambda x: x.isdigit() or x == ".", line)))
     return [int(voltage * 1000), int(current * 1000)]
 
-device_path = None
-for device_info in hid.enumerate(VID, PID):
-    device_path = device_info["path"]
-    break
-
-if device_path is None:
-    raise RuntimeError(f"Device {VID:04x}:{PID:04x} not found")
-
 dp100 = hid.device()
-dp100.open_path(device_path)
+dp100.open(VID, PID)
 
 try:
     print(f"Manufacturer: {dp100.get_manufacturer_string()}")

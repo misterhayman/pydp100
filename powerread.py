@@ -140,16 +140,9 @@ def gen_set(output=False, vset=0, iset=0, ovp=30500, ocp=5050):
     )
 
 
-device_path = None
-for device_info in hid.enumerate(VID, PID):
-    device_path = device_info["path"]
-    break
-
-if device_path is None:
-    raise RuntimeError(f"Device {VID:04x}:{PID:04x} not found")
 
 dp100 = hid.device()
-dp100.open_path(device_path)
+dp100.open(VID, PID)
 
 try:
     print(f"Manufacturer: {dp100.get_manufacturer_string()}")
